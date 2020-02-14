@@ -3,6 +3,8 @@ defmodule Cache do
   Documentation for `Cache`.
 
   Taken from https://keathley.io/blog/reusable-libraries.html
+
+  Modified to store MapSets, rather than single values
   """
 
   use GenServer
