@@ -8,14 +8,25 @@ defmodule CacheTest do
     {:ok, cache: cache}
   end
 
-  test "it stores distinct values under distinct keys", %{cache: cache} do
+  ### TODO: break these up
+  test "it stores distinct sets under distinct keys", %{cache: cache} do
     assert Cache.get(cache, :key) == nil
-    :ok = Cache.put(cache, :key, "value")
+    :ok = Cache.put(cache, :key, "value1")
+    :ok = Cache.put(cache, :key, "value2")
     assert Cache.get(cache, :other_key) == nil
+
     :ok = Cache.put(cache, :other_key, "other value")
-    assert Cache.get(cache, :other_key) == "other value"
-    assert Cache.get(cache, :key) == "value"
-    :ok = Cache.remove(cache, :other_key)
-    assert Cache.get(cache, :other_key) == nil
+    assert "other value" in Cache.get(cache, :other_key)
+    values_under_key = Cache.get(cache, :key)
+    assert "value1" in values_under_key
+    assert "value2" in values_under_key
+
+    :ok = Cache.remove(cache, :key, "value2")
+    values_under_key = Cache.get(cache, :key)
+    assert "value1" in values_under_key
+    refute "value2" in values_under_key
+
+    :ok = Cache.remove(cache, :other_key, "other value")
+    refute "other value" in Cache.get(cache, :other_key)
   end
 end

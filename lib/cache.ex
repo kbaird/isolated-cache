@@ -43,9 +43,9 @@ defmodule Cache do
     GenServer.cast(server, {:put, key, value})
   end
 
-  @spec remove(cache(), key()) :: :ok | {:error, term()}
-  def remove(server, key) do
-    GenServer.cast(server, {:remove, key})
+  @spec remove(cache(), key(), term()) :: :ok | {:error, term()}
+  def remove(server, key, val) do
+    GenServer.cast(server, {:remove, key, val})
   end
 
   ### HANDLERS
@@ -55,10 +55,12 @@ defmodule Cache do
   end
 
   def handle_cast({:put, key, val}, data) do
-    {:noreply, put_in(data, [:kvs, key], val)}
+    state = data.kvs[key] || MapSet.new()
+    {:noreply, put_in(data, [:kvs, key], MapSet.put(state, val))}
   end
 
-  def handle_cast({:remove, key}, %{kvs: kvs, opts: opts}) do
-    {:noreply, %{kvs: Map.delete(kvs, key), opts: opts}}
+  def handle_cast({:remove, key, val}, data) do
+    state = data.kvs[key] || MapSet.new()
+    {:noreply, put_in(data, [:kvs, key], MapSet.delete(state, val))}
   end
 end
