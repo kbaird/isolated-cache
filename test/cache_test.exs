@@ -27,15 +27,15 @@ defmodule CacheTest do
     refute "value2" in values_under_other_key
   end
 
-  test "it removes values from distinct sets under distinct keys", %{cache: cache} do
+  test "it deletes values from distinct sets under distinct keys", %{cache: cache} do
     cache = initial_writes(cache)
-    :ok = Cache.remove(cache, :key, "value2")
+    :ok = Cache.delete(cache, :key, "value2")
 
     values_under_key = Cache.get(cache, :key)
     assert "value1" in values_under_key
     refute "value2" in values_under_key
 
-    :ok = Cache.remove(cache, :other_key, "other value")
+    :ok = Cache.delete(cache, :other_key, "other value")
     refute "other value" in Cache.get(cache, :other_key)
   end
 
