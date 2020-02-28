@@ -12,7 +12,7 @@ defmodule Cache do
   @typep cache :: pid()
   @typep key :: term()
   @typep get_response :: {:ok, term()} | {:error, :not_found}
-  @typep standard_response :: :ok | {:error, term()}
+  @typep change_response :: :ok | {:error, term()}
 
   ### BOILERPLATE
 
@@ -42,12 +42,12 @@ defmodule Cache do
     GenServer.call(server, {:get, key})
   end
 
-  @spec put(cache(), key(), term()) :: standard_response()
+  @spec put(cache(), key(), term()) :: change_response()
   def put(server, key, value) do
     GenServer.cast(server, {:put, key, value})
   end
 
-  @spec delete(cache(), key(), term()) :: standard_response()
+  @spec delete(cache(), key(), term()) :: change_response()
   def delete(server, key, val) do
     GenServer.cast(server, {:delete, key, val})
   end
