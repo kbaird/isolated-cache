@@ -11,6 +11,8 @@ defmodule Cache do
 
   @typep cache :: pid()
   @typep key :: term()
+  @typep get_response :: {:ok, term()} | {:error, :not_found}
+  @typep standard_response :: :ok | {:error, term()}
 
   ### BOILERPLATE
 
@@ -35,25 +37,25 @@ defmodule Cache do
 
   ### API
 
-  @spec get(cache(), key()) :: term()
+  @spec get(cache(), key()) :: get_response()
   def get(server, key) do
     GenServer.call(server, {:get, key})
   end
 
-  @spec put(cache(), key(), term()) :: :ok | {:error, term()}
+  @spec put(cache(), key(), term()) :: standard_response()
   def put(server, key, value) do
     GenServer.cast(server, {:put, key, value})
   end
 
-  @spec delete(cache(), key(), term()) :: :ok | {:error, term()}
+  @spec delete(cache(), key(), term()) :: standard_response()
   def delete(server, key, val) do
     GenServer.cast(server, {:delete, key, val})
   end
 
   ### HANDLERS
 
-  def handle_call({:get, key}, _from, data) do
-    {:reply, data.kvs[key], data}
+  def handle_call({:get, key}, _from, %{kvs: kvs} = data) do
+    {:reply, read(kvs, key), data}
   end
 
   def handle_cast({:put, key, val}, data) do
@@ -64,5 +66,15 @@ defmodule Cache do
   def handle_cast({:delete, key, val}, data) do
     state = data.kvs[key] || MapSet.new()
     {:noreply, put_in(data, [:kvs, key], MapSet.delete(state, val))}
+  end
+
+  ### PRIVATE FUNCTIONS
+
+  defp read(kvs, key) do
+    if Map.has_key?(kvs, key) do
+      {:ok, kvs[key]}
+    else
+      {:error, :not_found}
+    end
   end
 end
