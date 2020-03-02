@@ -60,12 +60,14 @@ defmodule Cache do
 
   def handle_cast({:put, key, val}, data) do
     state = data.kvs[key] || MapSet.new()
-    {:noreply, put_in(data, [:kvs, key], MapSet.put(state, val))}
+    new_set = MapSet.put(state, val)
+    {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
   def handle_cast({:delete, key, val}, data) do
     state = data.kvs[key] || MapSet.new()
-    {:noreply, put_in(data, [:kvs, key], MapSet.delete(state, val))}
+    new_set = MapSet.delete(state, val)
+    {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
   ### PRIVATE FUNCTIONS
