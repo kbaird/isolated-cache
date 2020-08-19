@@ -59,13 +59,13 @@ defmodule Cache do
   end
 
   def handle_cast({:put, key, val}, data) do
-    state = data.kvs[key] || MapSet.new()
+    state = state(data, key)
     new_set = MapSet.put(state, val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
   def handle_cast({:delete, key, val}, data) do
-    state = data.kvs[key] || MapSet.new()
+    state = state(data, key)
     new_set = MapSet.delete(state, val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
@@ -78,5 +78,9 @@ defmodule Cache do
     else
       {:error, :not_found}
     end
+  end
+
+  defp state(data, key) do
+    data.kvs[key] || MapSet.new()
   end
 end
