@@ -3,7 +3,7 @@ defmodule CacheTest do
   doctest Cache
 
   setup do
-    {:ok, cache} = Cache.start_link([])
+    {:ok, cache} = Cache.start_link()
 
     {:ok, cache: cache}
   end

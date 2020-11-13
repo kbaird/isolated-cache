@@ -30,7 +30,7 @@ defmodule Cache do
   end
 
   @spec start_link(Keyword.t()) :: {:ok, pid()} | {:error, term()} | :ignore
-  def start_link(opts) do
+  def start_link(opts \\ []) do
     server_opts = Keyword.take(opts, [:name])
     GenServer.start_link(__MODULE__, opts, server_opts)
   end
