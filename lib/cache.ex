@@ -80,7 +80,7 @@ defmodule Cache do
     end
   end
 
-  defp state(data, key) do
-    data.kvs[key] || MapSet.new()
+  defp state(%{kvs: kvs} = _data, key) do
+    kvs[key] || MapSet.new()
   end
 end
