@@ -58,21 +58,21 @@ defmodule Cache do
     {:reply, read(kvs, key), data}
   end
 
-  def handle_cast({:put, key, val}, data) do
-    state = state(data, key)
+  def handle_cast({:put, key, val}, %{kvs: kvs} = data) do
+    state = state(kvs, key)
     new_set = MapSet.put(state, val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
-  def handle_cast({:delete, key, val}, data) do
-    state = state(data, key)
+  def handle_cast({:delete, key, val}, %{kvs: kvs} = data) do
+    state = state(kvs, key)
     new_set = MapSet.delete(state, val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
   ### PRIVATE FUNCTIONS
 
-  defp read(kvs, key) do
+  defp read(kvs, key) when is_map(kvs) do
     if Map.has_key?(kvs, key) do
       {:ok, kvs[key]}
     else
@@ -80,7 +80,7 @@ defmodule Cache do
     end
   end
 
-  defp state(%{kvs: kvs} = _data, key) do
+  defp state(kvs, key) when is_map(kvs) do
     kvs[key] || MapSet.new()
   end
 end
