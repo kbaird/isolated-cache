@@ -8,51 +8,56 @@ defmodule CacheTest do
     {:ok, cache: cache}
   end
 
-  test "it returns {:error, :not_found} for novel keys", %{cache: cache} do
-    assert Cache.get(cache, :key) == {:error, :not_found}
-    assert Cache.get(cache, :other_key) == {:error, :not_found}
+  describe "with an unknown key" do
+    test "it returns {:error, :not_found}", %{cache: cache} do
+      assert Cache.get(cache, :key) == {:error, :not_found}
+      assert Cache.get(cache, :other_key) == {:error, :not_found}
+    end
   end
 
-  test "it can store nil as a legitimate value", %{cache: cache} do
-    :ok = Cache.put(cache, :key, nil)
-    {:ok, values} = Cache.get(cache, :key)
-    assert MapSet.size(values) == 1
-    assert nil in values
+  describe "with a legitimate key" do
+    test "it can store nil as a legitimate value", %{cache: cache} do
+      :ok = Cache.put(cache, :key, nil)
+      {:ok, values} = Cache.get(cache, :key)
+      assert nil in values
+    end
   end
 
-  test "it stores distinct sets under distinct keys", %{cache: cache} do
-    cache = initial_writes(cache)
-    {:ok, values_under_key} = Cache.get(cache, :key)
-    {:ok, values_under_other_key} = Cache.get(cache, :other_key)
+  describe "with multiple distinct keys" do
+    setup :initial_writes
 
-    assert "value1" in values_under_key
-    assert "value2" in values_under_key
-    refute "other value" in values_under_key
+    test "it stores distinct sets of values for each key", %{cache: cache} do
+      {:ok, values_under_key} = Cache.get(cache, :key)
+      {:ok, values_under_other_key} = Cache.get(cache, :other_key)
 
-    assert "other value" in values_under_other_key
-    refute "value1" in values_under_other_key
-    refute "value2" in values_under_other_key
-  end
+      assert "value1" in values_under_key
+      assert "value2" in values_under_key
+      refute "other value" in values_under_key
 
-  test "it deletes values from distinct sets under distinct keys", %{cache: cache} do
-    cache = initial_writes(cache)
-    :ok = Cache.delete(cache, :key, "value2")
+      assert "other value" in values_under_other_key
+      refute "value1" in values_under_other_key
+      refute "value2" in values_under_other_key
+    end
 
-    {:ok, values_under_key} = Cache.get(cache, :key)
-    assert "value1" in values_under_key
-    refute "value2" in values_under_key
+    test "it deletes values from distinct sets under distinct keys", %{cache: cache} do
+      :ok = Cache.delete(cache, :key, "value2")
 
-    :ok = Cache.delete(cache, :other_key, "other value")
-    {:ok, values_under_other_key} = Cache.get(cache, :other_key)
-    refute "other value" in values_under_other_key
+      {:ok, values_under_key} = Cache.get(cache, :key)
+      assert "value1" in values_under_key
+      refute "value2" in values_under_key
+
+      :ok = Cache.delete(cache, :other_key, "other value")
+      {:ok, values_under_other_key} = Cache.get(cache, :other_key)
+      refute "other value" in values_under_other_key
+    end
   end
 
   ### PRIVATE FUNCTIONS
 
-  defp initial_writes(cache) do
+  defp initial_writes(%{cache: cache}) do
     :ok = Cache.put(cache, :key, "value1")
     :ok = Cache.put(cache, :key, "value2")
     :ok = Cache.put(cache, :other_key, "other value")
-    cache
+    {:ok, %{cache: cache}}
   end
 end
