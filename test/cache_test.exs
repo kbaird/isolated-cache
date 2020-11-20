@@ -11,7 +11,7 @@ defmodule CacheTest do
     end
   end
 
-  describe "with a legitimate key" do
+  describe "with a known/legitimate key" do
     test "it can store nil as a legitimate value", %{cache: cache} do
       :ok = Cache.put(cache, :key, nil)
       {:ok, values} = Cache.get(cache, :key)
@@ -20,7 +20,7 @@ defmodule CacheTest do
   end
 
   describe "with multiple distinct keys" do
-    setup :initial_writes
+    setup :write_to_distinct_keys
 
     test "it stores only the correct values under the first key", %{cache: cache} do
       {:ok, values_under_key} = Cache.get(cache, :key)
@@ -57,7 +57,7 @@ defmodule CacheTest do
     {:ok, cache: cache}
   end
 
-  defp initial_writes(%{cache: cache}) do
+  defp write_to_distinct_keys(%{cache: cache}) do
     :ok = Cache.put(cache, :key, "value1")
     :ok = Cache.put(cache, :key, "value2")
     :ok = Cache.put(cache, :other_key, "other value")
