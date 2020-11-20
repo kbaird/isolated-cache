@@ -26,26 +26,28 @@ defmodule CacheTest do
   describe "with multiple distinct keys" do
     setup :initial_writes
 
-    test "it stores distinct sets of values for each key", %{cache: cache} do
+    test "it stores only the correct values under the first key", %{cache: cache} do
       {:ok, values_under_key} = Cache.get(cache, :key)
-      {:ok, values_under_other_key} = Cache.get(cache, :other_key)
-
       assert "value1" in values_under_key
       assert "value2" in values_under_key
       refute "other value" in values_under_key
+    end
 
+    test "it stores only the correct values under the second key", %{cache: cache} do
+      {:ok, values_under_other_key} = Cache.get(cache, :other_key)
       assert "other value" in values_under_other_key
       refute "value1" in values_under_other_key
       refute "value2" in values_under_other_key
     end
 
-    test "it deletes values from distinct sets under distinct keys", %{cache: cache} do
+    test "it deletes values from the first key", %{cache: cache} do
       :ok = Cache.delete(cache, :key, "value2")
-
       {:ok, values_under_key} = Cache.get(cache, :key)
       assert "value1" in values_under_key
       refute "value2" in values_under_key
+    end
 
+    test "it deletes values from the second key", %{cache: cache} do
       :ok = Cache.delete(cache, :other_key, "other value")
       {:ok, values_under_other_key} = Cache.get(cache, :other_key)
       refute "other value" in values_under_other_key
