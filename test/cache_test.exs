@@ -2,11 +2,7 @@ defmodule CacheTest do
   use ExUnit.Case, async: true
   doctest Cache
 
-  setup do
-    {:ok, cache} = Cache.start_link()
-
-    {:ok, cache: cache}
-  end
+  setup :initial_cache
 
   describe "with an unknown key" do
     test "it returns {:error, :not_found}", %{cache: cache} do
@@ -55,6 +51,11 @@ defmodule CacheTest do
   end
 
   ### PRIVATE FUNCTIONS
+
+  defp initial_cache(_) do
+    {:ok, cache} = Cache.start_link()
+    {:ok, cache: cache}
+  end
 
   defp initial_writes(%{cache: cache}) do
     :ok = Cache.put(cache, :key, "value1")
