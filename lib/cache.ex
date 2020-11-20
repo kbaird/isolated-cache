@@ -58,16 +58,16 @@ defmodule Cache do
 
   ### HANDLERS
 
-  def handle_call({:get, key}, _from, %{kvs: kvs} = data) do
+  def handle_call({:get, key}, _from, %{kvs: kvs} = data) when is_map(kvs) do
     {:reply, read(kvs, key), data}
   end
 
-  def handle_cast({:put, key, val}, %{kvs: kvs} = data) do
+  def handle_cast({:put, key, val}, %{kvs: kvs} = data) when is_map(kvs) do
     new_set = kvs |> state(key) |> MapSet.put(val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
 
-  def handle_cast({:delete, key, val}, %{kvs: kvs} = data) do
+  def handle_cast({:delete, key, val}, %{kvs: kvs} = data) when is_map(kvs) do
     new_set = kvs |> state(key) |> MapSet.delete(val)
     {:noreply, put_in(data, [:kvs, key], new_set)}
   end
