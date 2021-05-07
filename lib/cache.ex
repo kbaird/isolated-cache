@@ -30,24 +30,12 @@ defmodule Cache do
 
   @spec put(key(), term()) :: change_response()
   def put(key, value) do
-    Agent.update(
-      __MODULE__,
-      fn %{kvs: kvs} = data ->
-        new_set = kvs |> state(key) |> MapSet.put(value)
-        put_in(data, [:kvs, key], new_set)
-      end
-    )
+    update(key, value, &MapSet.put/2)
   end
 
   @spec delete(key(), term()) :: change_response()
   def delete(key, value) do
-    Agent.update(
-      __MODULE__,
-      fn %{kvs: kvs} = data ->
-        new_set = kvs |> state(key) |> MapSet.delete(value)
-        put_in(data, [:kvs, key], new_set)
-      end
-    )
+    update(key, value, &MapSet.delete/2)
   end
 
   ### PRIVATE FUNCTIONS
@@ -62,5 +50,15 @@ defmodule Cache do
 
   defp state(kvs, key) when is_map(kvs) do
     kvs[key] || MapSet.new()
+  end
+
+  defp update(key, value, operation) when is_function(operation, 2) do
+    Agent.update(
+      __MODULE__,
+      fn %{kvs: kvs} = data ->
+        new_set = kvs |> state(key) |> operation.(value)
+        put_in(data, [:kvs, key], new_set)
+      end
+    )
   end
 end
