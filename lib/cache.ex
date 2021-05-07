@@ -25,7 +25,7 @@ defmodule Cache do
 
   @spec get(term()) :: get_response()
   def get(key) do
-    Agent.get(__MODULE__, fn kvs -> read(kvs, key) end)
+    Agent.get(__MODULE__, fn state -> read(state, key) end)
   end
 
   @spec put(term(), term()) :: change_response()
@@ -40,24 +40,21 @@ defmodule Cache do
 
   ### PRIVATE FUNCTIONS
 
-  defp read(kvs, key) when is_map(kvs) do
-    if Map.has_key?(kvs, key) do
-      {:ok, kvs[key]}
+  defp read(state, key) when is_map(state) do
+    if Map.has_key?(state, key) do
+      {:ok, state[key]}
     else
       {:error, :not_found}
     end
   end
 
-  defp state(kvs, key) when is_map(kvs) do
-    kvs[key] || MapSet.new()
-  end
-
   defp update(key, value, operation) when is_function(operation, 2) do
     Agent.update(
       __MODULE__,
-      fn kvs ->
-        new_set = kvs |> state(key) |> operation.(value)
-        Map.put(kvs, key, new_set)
+      fn state ->
+        old_set = Map.get(state, key) || MapSet.new()
+        new_set = operation.(old_set, value)
+        Map.put(state, key, new_set)
       end
     )
   end
