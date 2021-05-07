@@ -18,14 +18,14 @@ defmodule Cache do
 
   @spec start_link() :: start_link_response()
   def start_link do
-    Agent.start_link(fn -> %{kvs: %{}} end, name: __MODULE__)
+    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
   end
 
   ### API
 
   @spec get(term()) :: get_response()
   def get(key) do
-    Agent.get(__MODULE__, fn %{kvs: kvs} -> read(kvs, key) end)
+    Agent.get(__MODULE__, fn kvs -> read(kvs, key) end)
   end
 
   @spec put(term(), term()) :: change_response()
@@ -55,9 +55,9 @@ defmodule Cache do
   defp update(key, value, operation) when is_function(operation, 2) do
     Agent.update(
       __MODULE__,
-      fn %{kvs: kvs} = data ->
+      fn kvs ->
         new_set = kvs |> state(key) |> operation.(value)
-        put_in(data, [:kvs, key], new_set)
+        Map.put(kvs, key, new_set)
       end
     )
   end
