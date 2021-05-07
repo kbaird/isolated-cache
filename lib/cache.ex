@@ -10,8 +10,8 @@ defmodule Cache do
 
   use Agent
 
-  @typep get_response :: {:ok, term()} | {:error, :not_found}
   @typep change_response :: :ok | {:error, term()}
+  @typep get_response :: {:ok, term()} | {:error, :not_found}
   @typep start_link_response :: {:ok, pid()} | {:error, term()}
 
   ### BOILERPLATE
