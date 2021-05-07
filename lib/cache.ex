@@ -24,8 +24,8 @@ defmodule Cache do
   ### API
 
   @spec get(term()) :: get_response()
-  def get(key) do
-    Agent.get(__MODULE__, fn state -> read(state, key) end)
+  def get(key, opts \\ []) do
+    Agent.get(__MODULE__, fn state -> read(state, key, opts) end)
   end
 
   @spec put(term(), term()) :: change_response()
@@ -40,13 +40,29 @@ defmodule Cache do
 
   ### PRIVATE FUNCTIONS
 
-  defp read(state, key) when is_map(state) do
+  defp read(state, key, opts) when is_map(state) and is_list(opts) do
+    limit = Keyword.get(opts, :limit)
+    sort? = Keyword.get(opts, :sort?) || false
+
     if Map.has_key?(state, key) do
-      {:ok, state[key]}
+      values = state |> Map.get(key) |> MapSet.to_list()
+      {:ok, values |> sort(sort?) |> truncate(limit)}
     else
       {:error, :not_found}
     end
   end
+
+  defp sort(values, true = _sort?) when is_list(values) do
+    Enum.sort(values)
+  end
+
+  defp sort(values, false) when is_list(values), do: values
+
+  defp truncate(values, limit) when is_list(values) and is_integer(limit) do
+    Enum.take(values, limit)
+  end
+
+  defp truncate(values, nil) when is_list(values), do: values
 
   defp update(key, value, operation) when is_function(operation, 2) do
     Agent.update(
