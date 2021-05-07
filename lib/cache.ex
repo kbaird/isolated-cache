@@ -4,7 +4,8 @@ defmodule Cache do
 
   Taken from https://keathley.io/blog/reusable-libraries.html
 
-  Modified to store MapSets, rather than single values
+  Modified to store MapSets, rather than single values,
+  and to use an Agent, rather than a GenServer
   """
 
   use Agent
