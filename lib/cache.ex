@@ -9,10 +9,9 @@ defmodule Cache do
 
   use Agent
 
-  @typep key :: term()
   @typep get_response :: {:ok, term()} | {:error, :not_found}
   @typep change_response :: :ok | {:error, term()}
-  @typep start_link_response :: {:ok, pid()} | {:error, term()} | :ignore
+  @typep start_link_response :: {:ok, pid()} | {:error, term()}
 
   ### BOILERPLATE
 
@@ -23,17 +22,17 @@ defmodule Cache do
 
   ### API
 
-  @spec get(key()) :: get_response()
+  @spec get(term()) :: get_response()
   def get(key) do
     Agent.get(__MODULE__, fn %{kvs: kvs} -> read(kvs, key) end)
   end
 
-  @spec put(key(), term()) :: change_response()
+  @spec put(term(), term()) :: change_response()
   def put(key, value) do
     update(key, value, &MapSet.put/2)
   end
 
-  @spec delete(key(), term()) :: change_response()
+  @spec delete(term(), term()) :: change_response()
   def delete(key, value) do
     update(key, value, &MapSet.delete/2)
   end
