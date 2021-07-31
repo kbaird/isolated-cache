@@ -64,13 +64,17 @@ defmodule CacheTest do
       assert length(one_value) == 1
     end
 
-    property "always returns a sorted list" do
+    property "always returns a sorted list with sort?: true" do
       quickcheck(
         # using a smaller range to not lock up my machine
         forall count <- range(1, 10) do
           :ok = write_random_strings(count)
+          {:ok, raw_values} = Cache.get(:key)
           {:ok, sorted_values} = Cache.get(:key, sort?: true)
-          assert sorted_values == Enum.sort(sorted_values)
+
+          implies(raw_values != sorted_values) do
+            assert sorted_values == Enum.sort(sorted_values)
+          end
         end
       )
     end
