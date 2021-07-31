@@ -1,5 +1,9 @@
 defmodule CacheTest do
   use ExUnit.Case, async: true
+
+  # https://hexdocs.pm/propcheck/readme.html
+  use PropCheck
+
   doctest Cache
 
   setup :initial_cache
@@ -54,13 +58,21 @@ defmodule CacheTest do
     setup :write_to_distinct_keys
 
     test "limits" do
-      {:ok, values_under_key} = Cache.get(:key, limit: 1)
-      assert length(values_under_key) == 1
+      {:ok, values_under_key} = Cache.get(:key)
+      assert length(values_under_key) > 1
+      {:ok, one_value} = Cache.get(:key, limit: 1)
+      assert length(one_value) == 1
     end
 
-    test "sorts" do
-      {:ok, values_under_key} = Cache.get(:key, sort?: true)
-      assert values_under_key == Enum.sort(values_under_key)
+    property "always returns a sorted list" do
+      quickcheck(
+        # using a smaller range to not lock up my machine
+        forall count <- range(1, 10) do
+          :ok = write_random_strings(count)
+          {:ok, sorted_values} = Cache.get(:key, sort?: true)
+          assert sorted_values == Enum.sort(sorted_values)
+        end
+      )
     end
   end
 
@@ -69,6 +81,18 @@ defmodule CacheTest do
   defp initial_cache(_) do
     {:ok, cache} = Cache.start_link()
     {:ok, cache: cache}
+  end
+
+  defp random_string do
+    :crypto.strong_rand_bytes(10)
+  end
+
+  defp write_random_strings(count) do
+    0..count
+    |> Enum.to_list()
+    |> Enum.each(fn _ ->
+      Cache.put(:key, random_string())
+    end)
   end
 
   defp write_to_distinct_keys(_) do
