@@ -43,7 +43,7 @@ defmodule Cache do
   defp read(state, key, opts) when is_map(state) and is_list(opts) do
     if Map.has_key?(state, key) do
       limit = Keyword.get(opts, :limit)
-      sort? = Keyword.get(opts, :sort?) || false
+      sort? = Keyword.get(opts, :sort?, false)
       values = state |> Map.get(key) |> MapSet.to_list()
       {:ok, values |> sort(sort?) |> truncate(limit)}
     else
@@ -67,7 +67,7 @@ defmodule Cache do
     Agent.update(
       __MODULE__,
       fn state ->
-        old_set = Map.get(state, key) || MapSet.new()
+        old_set = Map.get(state, key, MapSet.new())
         new_set = operation.(old_set, value)
         Map.put(state, key, new_set)
       end
