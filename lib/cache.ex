@@ -41,10 +41,9 @@ defmodule Cache do
   ### PRIVATE FUNCTIONS
 
   defp read(state, key, opts) when is_map(state) and is_list(opts) do
-    limit = Keyword.get(opts, :limit)
-    sort? = Keyword.get(opts, :sort?) || false
-
     if Map.has_key?(state, key) do
+      limit = Keyword.get(opts, :limit)
+      sort? = Keyword.get(opts, :sort?) || false
       values = state |> Map.get(key) |> MapSet.to_list()
       {:ok, values |> sort(sort?) |> truncate(limit)}
     else
