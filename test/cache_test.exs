@@ -24,7 +24,7 @@ defmodule CacheTest do
   end
 
   describe "with multiple distinct keys" do
-    setup :write_to_distinct_keys
+    setup :seed_under_distinct_keys
 
     test "stores only the correct values under the first key" do
       {:ok, values_under_key} = Cache.get(:key)
@@ -55,7 +55,7 @@ defmodule CacheTest do
   end
 
   describe "get/2" do
-    setup :write_to_distinct_keys
+    setup :seed_under_distinct_keys
 
     test "limits" do
       {:ok, values_under_key} = Cache.get(:key)
@@ -68,7 +68,7 @@ defmodule CacheTest do
       quickcheck(
         # using a smaller range to not lock up my machine
         forall count <- range(1, 10) do
-          :ok = write_random_strings(count)
+          :ok = seed_random_strings(count)
           {:ok, raw_values} = Cache.get(:key)
           {:ok, sorted_values} = Cache.get(:key, sort?: true)
 
@@ -91,7 +91,7 @@ defmodule CacheTest do
     :crypto.strong_rand_bytes(10)
   end
 
-  defp write_random_strings(count) do
+  defp seed_random_strings(count) do
     0..count
     |> Enum.to_list()
     |> Enum.each(fn _ ->
@@ -99,7 +99,7 @@ defmodule CacheTest do
     end)
   end
 
-  defp write_to_distinct_keys(_) do
+  defp seed_under_distinct_keys(_) do
     :ok = Cache.put(:key, "value2")
     :ok = Cache.put(:key, "value1")
     :ok = Cache.put(:other_key, "other value")
