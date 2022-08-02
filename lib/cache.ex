@@ -10,6 +10,8 @@ defmodule Cache do
 
   use Agent
 
+  @name __MODULE__
+
   @typep change_response :: :ok | {:error, term()}
   @typep get_response :: {:ok, term()} | {:error, :not_found}
   @typep start_link_response :: {:ok, pid()} | {:error, term()}
@@ -18,14 +20,14 @@ defmodule Cache do
 
   @spec start_link() :: start_link_response()
   def start_link do
-    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
+    Agent.start_link(fn -> Map.new() end, name: @name)
   end
 
   ### API
 
   @spec get(term()) :: get_response()
   def get(key, opts \\ []) do
-    Agent.get(__MODULE__, fn state -> read(state, key, opts) end)
+    Agent.get(@name, fn state -> read(state, key, opts) end)
   end
 
   @spec put(term(), term()) :: change_response()
@@ -65,7 +67,7 @@ defmodule Cache do
 
   defp update(key, value, operation) when is_function(operation, 2) do
     Agent.update(
-      __MODULE__,
+      @name,
       fn state ->
         old_set = Map.get(state, key, MapSet.new())
         new_set = operation.(old_set, value)
