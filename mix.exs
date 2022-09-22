@@ -4,7 +4,6 @@ defmodule Cache.MixProject do
   def project do
     [
       dialyzer: [
-        plt_add_deps: :transitive,
         plt_add_apps: [:mix, :ex_unit],
         flags: [
           :unmatched_returns,
