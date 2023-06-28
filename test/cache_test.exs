@@ -57,7 +57,7 @@ defmodule CacheTest do
   describe "get/2" do
     setup :seed_under_distinct_keys
 
-    test "limits" do
+    test "respects the limit option" do
       {:ok, values_under_key} = Cache.get(:key)
       assert length(values_under_key) > 1
       {:ok, one_value} = Cache.get(:key, limit: 1)
