@@ -25,6 +25,12 @@ defmodule Cache do
 
   ### API
 
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> {:ok, [val]} = Cache.get(:a_key)
+    iex> val
+    :a_value
+  """
   @spec get(term()) :: get_response()
   def get(key, opts \\ []) do
     Agent.get(@name, fn state -> read(state, key, opts) end)
@@ -35,6 +41,20 @@ defmodule Cache do
     update(key, value, &MapSet.put/2)
   end
 
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.put(:a_key, :another_value)
+    iex> {:ok, vals} = Cache.get(:a_key)
+    iex> :a_value in vals and :another_value in vals
+    true
+
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.put(:a_key, :another_value)
+    iex> Cache.delete(:a_key, :a_value)
+    iex> {:ok, [val]} = Cache.get(:a_key)
+    iex> val
+    :another_value
+  """
   @spec delete(term(), term()) :: change_response()
   def delete(key, value) do
     update(key, value, &MapSet.delete/2)
