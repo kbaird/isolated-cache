@@ -64,26 +64,28 @@ defmodule Cache do
 
   defp read(state, key, opts) when is_map(state) and is_list(opts) do
     if Map.has_key?(state, key) do
-      limit = Keyword.get(opts, :limit)
-      sort? = Keyword.get(opts, :sort?, false)
       values = state |> Map.get(key) |> MapSet.to_list()
-      {:ok, values |> sort(sort?) |> truncate(limit)}
+      {:ok, values |> sort(opts) |> truncate(opts)}
     else
       {:error, :not_found}
     end
   end
 
-  defp sort(values, true = _sort?) when is_list(values) do
-    Enum.sort(values)
+  defp sort(values, opts) when is_list(values) and is_list(opts) do
+    if Keyword.get(opts, :sort?, false) do
+      Enum.sort(values)
+    else
+      values
+    end
   end
 
-  defp sort(values, false) when is_list(values), do: values
-
-  defp truncate(values, limit) when is_list(values) and is_integer(limit) do
-    Enum.take(values, limit)
+  defp truncate(values, opts) when is_list(values) and is_list(opts) do
+    if limit = Keyword.get(opts, :limit) do
+      Enum.take(values, limit)
+    else
+      values
+    end
   end
-
-  defp truncate(values, nil) when is_list(values), do: values
 
   defp update(key, value, operation) when is_function(operation, 2) do
     Agent.update(
