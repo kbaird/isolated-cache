@@ -10,8 +10,8 @@ defmodule CacheTest do
 
   describe "with an unknown key" do
     test "returns {:error, :not_found}" do
-      assert Cache.get(:key) == {:error, :not_found}
-      assert Cache.get(:other_key) == {:error, :not_found}
+      assert {:error, :not_found} = Cache.get(:key)
+      assert {:error, :not_found} = Cache.get(:other_key)
     end
   end
 
