@@ -8,8 +8,6 @@ defmodule Cache do
   and to use an Agent, rather than a GenServer
   """
 
-  use Agent
-
   @name __MODULE__
 
   @typep change_response :: :ok | {:error, term()}
