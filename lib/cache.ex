@@ -28,6 +28,13 @@ defmodule Cache do
     iex> {:ok, [val]} = Cache.get(:a_key)
     iex> val
     :a_value
+
+  Options:
+    `sort?` - when `true`, sorts values before returning (default: `false`)
+    `limit` - returns only the first N values. When used without `sort?`,
+      the order is arbitrary (MapSet insertion order). It is recommended
+      to always use `sort?: true` when providing `limit` so the result is
+      deterministic.
   """
   @spec get(term()) :: get_response()
   def get(key, opts \\ []) do
