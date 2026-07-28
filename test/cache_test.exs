@@ -1,5 +1,5 @@
 defmodule CacheTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   # https://hexdocs.pm/propcheck/readme.html
   use PropCheck
@@ -66,37 +66,69 @@ defmodule CacheTest do
 
     property "always returns a sorted list with sort?: true" do
       quickcheck(
-        # using a smaller range to not lock up my machine
-        forall count <- range(1, 10) do
-          :ok = seed_random_strings(count)
+        forall values <- non_empty(list(integer())) do
+          Cache.clear()
+          Enum.each(values, fn v -> Cache.put(:key, v) end)
           {:ok, raw_values} = Cache.get(:key)
           {:ok, sorted_values} = Cache.get(:key, sort?: true)
-
-          implies(raw_values != sorted_values) do
-            assert sorted_values == Enum.sort(sorted_values)
-          end
+          assert sorted_values == Enum.sort(raw_values)
         end
       )
+    end
+  end
+
+  describe "has_key?/1" do
+    test "returns false for an unknown key" do
+      refute Cache.has_key?(:key)
+    end
+
+    test "returns true for a known key" do
+      :ok = Cache.put(:key, :a_value)
+      assert Cache.has_key?(:key)
+    end
+
+    test "still returns true after all values are removed" do
+      :ok = Cache.put(:key, :a_value)
+      :ok = Cache.delete(:key, :a_value)
+      assert Cache.has_key?(:key)
+    end
+
+    test "returns false after cache is cleared" do
+      :ok = Cache.put(:key, :a_value)
+      Cache.clear()
+      refute Cache.has_key?(:key)
+    end
+  end
+
+  describe "keys/0" do
+    test "returns an empty list for an empty cache" do
+      {:ok, []} = Cache.keys()
+    end
+
+    test "returns all keys" do
+      :ok = Cache.put(:key, :a_value)
+      :ok = Cache.put(:other_key, :other_value)
+      {:ok, keys} = Cache.keys()
+      assert :key in keys
+      assert :other_key in keys
+    end
+
+    test "returns no keys after cache is cleared" do
+      :ok = Cache.put(:key, :a_value)
+      Cache.clear()
+      {:ok, []} = Cache.keys()
     end
   end
 
   ### PRIVATE FUNCTIONS
 
   defp initial_cache(_) do
+    if pid = Process.whereis(Cache) do
+      :ok = Agent.stop(pid)
+    end
+
     {:ok, cache} = Cache.start_link()
     {:ok, cache: cache}
-  end
-
-  defp random_string do
-    :crypto.strong_rand_bytes(10)
-  end
-
-  defp seed_random_strings(count) do
-    0..count
-    |> Enum.to_list()
-    |> Enum.each(fn _ ->
-      Cache.put(:key, random_string())
-    end)
   end
 
   defp seed_under_distinct_keys(_) do

@@ -28,6 +28,13 @@ defmodule Cache do
     iex> {:ok, [val]} = Cache.get(:a_key)
     iex> val
     :a_value
+
+  Options:
+    `sort?` - when `true`, sorts values before returning (default: `false`)
+    `limit` - returns only the first N values. When used without `sort?`,
+      the order is arbitrary (MapSet insertion order). It is recommended
+      to always use `sort?: true` when providing `limit` so the result is
+      deterministic.
   """
   @spec get(term()) :: get_response()
   def get(key, opts \\ []) do
@@ -56,6 +63,39 @@ defmodule Cache do
   @spec delete(term(), term()) :: change_response()
   def delete(key, value) do
     update(key, value, &MapSet.delete/2)
+  end
+
+  @doc """
+  Clears all cached state.
+  """
+  @spec clear() :: :ok
+  def clear do
+    Agent.update(@name, fn _state -> Map.new() end)
+  end
+
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.has_key?(:a_key)
+    true
+
+    iex> Cache.has_key?(:missing_key)
+    false
+  """
+  @spec has_key?(term()) :: boolean()
+  def has_key?(key) do
+    Agent.get(@name, fn state -> Map.has_key?(state, key) end)
+  end
+
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.put(:other_key, :other_value)
+    iex> {:ok, keys} = Cache.keys()
+    iex> :a_key in keys and :other_key in keys
+    true
+  """
+  @spec keys() :: {:ok, list(term())}
+  def keys do
+    Agent.get(@name, fn state -> {:ok, Map.keys(state)} end)
   end
 
   ### PRIVATE FUNCTIONS
