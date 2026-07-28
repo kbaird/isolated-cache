@@ -77,6 +77,49 @@ defmodule CacheTest do
     end
   end
 
+  describe "has_key?/1" do
+    test "returns false for an unknown key" do
+      refute Cache.has_key?(:key)
+    end
+
+    test "returns true for a known key" do
+      :ok = Cache.put(:key, :a_value)
+      assert Cache.has_key?(:key)
+    end
+
+    test "still returns true after all values are removed" do
+      :ok = Cache.put(:key, :a_value)
+      :ok = Cache.delete(:key, :a_value)
+      assert Cache.has_key?(:key)
+    end
+
+    test "returns false after cache is cleared" do
+      :ok = Cache.put(:key, :a_value)
+      Cache.clear()
+      refute Cache.has_key?(:key)
+    end
+  end
+
+  describe "keys/0" do
+    test "returns an empty list for an empty cache" do
+      {:ok, []} = Cache.keys()
+    end
+
+    test "returns all keys" do
+      :ok = Cache.put(:key, :a_value)
+      :ok = Cache.put(:other_key, :other_value)
+      {:ok, keys} = Cache.keys()
+      assert :key in keys
+      assert :other_key in keys
+    end
+
+    test "returns no keys after cache is cleared" do
+      :ok = Cache.put(:key, :a_value)
+      Cache.clear()
+      {:ok, []} = Cache.keys()
+    end
+  end
+
   ### PRIVATE FUNCTIONS
 
   defp initial_cache(_) do

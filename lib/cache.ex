@@ -66,6 +66,31 @@ defmodule Cache do
     Agent.update(@name, fn _state -> Map.new() end)
   end
 
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.has_key?(:a_key)
+    true
+
+    iex> Cache.has_key?(:missing_key)
+    false
+  """
+  @spec has_key?(term()) :: boolean()
+  def has_key?(key) do
+    Agent.get(@name, fn state -> Map.has_key?(state, key) end)
+  end
+
+  @doc """
+    iex> Cache.put(:a_key, :a_value)
+    iex> Cache.put(:other_key, :other_value)
+    iex> {:ok, keys} = Cache.keys()
+    iex> :a_key in keys and :other_key in keys
+    true
+  """
+  @spec keys() :: {:ok, list(term())}
+  def keys do
+    Agent.get(@name, fn state -> {:ok, Map.keys(state)} end)
+  end
+
   ### PRIVATE FUNCTIONS
 
   defp read(state, key, opts) when is_map(state) and is_list(opts) do
