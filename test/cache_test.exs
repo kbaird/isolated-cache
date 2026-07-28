@@ -1,5 +1,5 @@
 defmodule CacheTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   # https://hexdocs.pm/propcheck/readme.html
   use PropCheck
@@ -66,15 +66,12 @@ defmodule CacheTest do
 
     property "always returns a sorted list with sort?: true" do
       quickcheck(
-        # using a smaller range to not lock up my machine
-        forall count <- range(1, 10) do
-          :ok = seed_random_strings(count)
+        forall values <- non_empty(list(integer())) do
+          Cache.clear()
+          Enum.each(values, fn v -> Cache.put(:key, v) end)
           {:ok, raw_values} = Cache.get(:key)
           {:ok, sorted_values} = Cache.get(:key, sort?: true)
-
-          implies(raw_values != sorted_values) do
-            assert sorted_values == Enum.sort(sorted_values)
-          end
+          assert sorted_values == Enum.sort(raw_values)
         end
       )
     end
@@ -83,20 +80,12 @@ defmodule CacheTest do
   ### PRIVATE FUNCTIONS
 
   defp initial_cache(_) do
+    if pid = Process.whereis(Cache) do
+      :ok = Agent.stop(pid)
+    end
+
     {:ok, cache} = Cache.start_link()
     {:ok, cache: cache}
-  end
-
-  defp random_string do
-    :crypto.strong_rand_bytes(10)
-  end
-
-  defp seed_random_strings(count) do
-    0..count
-    |> Enum.to_list()
-    |> Enum.each(fn _ ->
-      Cache.put(:key, random_string())
-    end)
   end
 
   defp seed_under_distinct_keys(_) do

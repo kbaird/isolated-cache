@@ -58,6 +58,14 @@ defmodule Cache do
     update(key, value, &MapSet.delete/2)
   end
 
+  @doc """
+  Clears all cached state.
+  """
+  @spec clear() :: :ok
+  def clear do
+    Agent.update(@name, fn _state -> Map.new() end)
+  end
+
   ### PRIVATE FUNCTIONS
 
   defp read(state, key, opts) when is_map(state) and is_list(opts) do
